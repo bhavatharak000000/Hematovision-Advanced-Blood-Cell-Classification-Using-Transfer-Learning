@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HematoVision - Blood Cell Classifier</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f2f7fa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            padding-top: 60px;
+        }
+
+        .container {
+            background: white;
+            padding: 40px 50px;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            width: 400px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #0077cc;
+        }
+
+        input[type="file"] {
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #0077cc;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #005fa3;
+        }
+
+        .result {
+            margin-top: 30px;
+            display: none;
+        }
+
+        .result img {
+            max-width: 100%;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .loader {
+            display: none;
+            margin-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>🔬 HematoVision</h2>
+        <form id="uploadForm">
+            <input type="file" name="file" id="fileInput" accept="image/*" required>
+            <br>
+            <button type="submit">Predict</button>
+        </form>
+
+        <div class="loader" id="loader">⏳ Processing...</div>
+
+        <div class="result" id="resultBox">
+            <p><strong>Predicted Class:</strong> <span id="prediction"></span></p>
+            <p><strong>Confidence:</strong> <span id="confidence"></span>%</p>
+            <img id="uploadedImage" src="" alt="Uploaded Image">
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const loader = document.getElementById('loader');
+        const resultBox = document.getElementById('resultBox');
+        const predictionEl = document.getElementById('prediction');
+        const confidenceEl = document.getElementById('confidence');
+        const imageEl = document.getElementById('uploadedImage');
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert('Please select an image file.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            loader.style.display = 'block';
+            resultBox.style.display = 'none';
+
+            fetch('/predict', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                loader.style.display = 'none';
+                predictionEl.textContent = data.prediction;
+                confidenceEl.textContent = data.confidence;
+                imageEl.src = data.image_url;
+                resultBox.style.display = 'block';
+            })
+            .catch(err => {
+                loader.style.display = 'none';
+                alert('Error during prediction.');
+                console.error(err);
+            });
+        });
+    </script>
+</body>
+</html>
